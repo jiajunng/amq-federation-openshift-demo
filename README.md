@@ -1,1 +1,57 @@
 # amq-interconnect-openshift-demo
+This demo deploys an AMQ messaging layer which simulates the messaging federation of two different OpenShift clusters using AMQ Interconnect. It is often an usual case of having more than one datacenters located away from one another and there is a need to connect messaging brokers into one logical cluster.
+
+## Prerequisites/Requirements
+* 1x OpenShift cluster (Tested on v4.3)
+  * OpenShift namespaces will be used to simulate two different regions
+* Java environment
+  * The AMQ clients (producers/consumers) will be implemented using Red Hat Fuse
+
+## Instructions
+### Deploy AMQ Interconnect in the first region
+![amq-cluster1](https://user-images.githubusercontent.com/25560159/79744412-de58f300-8338-11ea-8370-3f807b568367.png)
+
+The first region will be called *amq-cluster1*.The AMQ Interconnect Operator will deploy two nodes (Routers). Then it links them to form a mesh of size two and uses the AMQ Certificate Manager to secure the connection between both.
+
+* Create a *amq-cluster1* project
+  ```
+  $ oc new-project amq-cluster1
+  ```
+
+* Install AMQ Certificate Manager Operator
+  * Web Console -> Operators -> OperatorHub -> AMQ Certificate Manager -> Install -> Subscribe
+    ```
+    $ oc get pods -n openshift-operators
+    NAME                                       READY   STATUS    RESTARTS   AGE
+    cert-manager-controller-657c78fd47-n8lnp   1/1     Running   0          179m
+    ```
+* Install AMQ Interconnect Operator
+  * Web Console -> Operators -> OperatorHub -> AMQ Interconnect -> Install
+    ```
+    $ oc get pods -n amq-cluster1
+    NAME                                     READY   STATUS    RESTARTS   AGE
+    interconnect-operator-5c8f464bc4-48n7h   1/1     Running   0          92m
+    ```
+* Deploy the AMQ Interconnect Routing layer
+  * From the *amq-cluster1* namespace, Operators -> Installed Operators -> AMQ Interconnect -> AMQ Interconnect -> Create Interconnect
+  * You can use the default setting, I have changed the name to *cluster1-router-mesh* so it is easier to identify:
+    ```
+    apiVersion: interconnectedcloud.github.io/v1alpha1
+    kind: Interconnect
+    metadata:
+      name: cluster1-router-mesh
+      namespace: amq-cluster1
+    spec:
+      deploymentPlan:
+        size: 2
+        role: interior
+        placement: Any
+    ```
+  * End result should be as follows:
+    ```
+    $ oc get pods -n amq-cluster1
+    NAME                                     READY   STATUS    RESTARTS   AGE
+    cluster1-router-mesh-688bfdc477-5jnvp    1/1     Running   0          79m
+    cluster1-router-mesh-688bfdc477-f2lsz    1/1     Running   0          79m
+    interconnect-operator-5c8f464bc4-48n7h   1/1     Running   0          92m
+    ```
