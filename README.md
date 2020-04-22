@@ -1,5 +1,6 @@
 # amq-interconnect-openshift-demo
 ![demo_end_goal](https://user-images.githubusercontent.com/25560159/79966715-6c131a80-84c0-11ea-9409-1049b6ddb37a.png)
+
 This demo deploys an AMQ messaging layer which simulates the messaging federation of two different OpenShift clusters using AMQ Interconnect. It is often an usual case of having more than one datacenters located away from one another and there is a need to connect messaging brokers into one logical cluster.
 
 ## Prerequisites/Requirements
@@ -7,6 +8,13 @@ This demo deploys an AMQ messaging layer which simulates the messaging federatio
   * OpenShift namespaces will be used to simulate two different regions
 * Java environment
   * The AMQ clients (producers/consumers) will be implemented using Red Hat Fuse
+
+## Instructions
+1. [Deploy AMQ Interconnect in the first region](#deploy-amq-interconnect-in-the-first-region)
+2. [Deploy AMQ Interconnect in the second region](#deploy-amq-interconnect-in-the-second-region)
+3. [Deploy AMQ Broker in the second region](#deploy-amq-broker-in-the-second-region)
+4. [Attach the broker to the routing layer](#attach-the-amq-broker-to-the-routing-layer)
+5. [Run the producer and consumer](#run-the-producer-and-consumer)  
 
 ## Deploy AMQ Interconnect in the first region
 ![amq-cluster1](https://user-images.githubusercontent.com/25560159/79744412-de58f300-8338-11ea-8370-3f807b568367.png)
@@ -147,7 +155,7 @@ oc extract secret/cluster2-inter-router-tls
   ![Interconnect](https://user-images.githubusercontent.com/25560159/79947627-da49e400-84a4-11ea-8ccf-d6969d81431d.png)
   On the Interconnect console, it shows that the 4 routers across the regions are connected.
 
-** Deploy AMQ Broker in the second region
+## Deploy AMQ Broker in the second region
 * From the *amq-cluster2* namespace, Operators -> Installed Operators -> AMQ Broker -> AMQ Broker -> Create Active MQArtemis:
   ```
   apiVersion: broker.amq.io/v2alpha1
@@ -165,7 +173,7 @@ oc extract secret/cluster2-inter-router-tls
         protocols: amqp
   ```
 
-* Attach the broker to the routing layer
+## Attach the broker to the routing layer
 ** Once the broker is created successfully, attach the broker to the routing layer, Web Console -> Operators -> Installed Operators -> AMQ Interconnect -> AMQ Interconnect -> cluster2-router-mesh -> YAML:
    * Add the following into the YAML:
    ```
@@ -185,7 +193,7 @@ oc extract secret/cluster2-inter-router-tls
    ```
    The *test* prefix indicates for which addresses the Routing layer should forward messages to the broker. The address *test* matches the address of the Fuse AMQP clients used to produce/consume messages.
   
-* Running the whole demo:
+## Run the producer and consumer 
   You can run both producer and consumer by running:
   ```
   $ mvn
