@@ -46,6 +46,7 @@ The first region will be called *amq-cluster1*.The AMQ Interconnect Operator wil
         role: interior
         placement: Any
     ```
+    
   * End result should be as follows:
     ```
     $ oc get pods -n amq-cluster1
@@ -54,6 +55,7 @@ The first region will be called *amq-cluster1*.The AMQ Interconnect Operator wil
     cluster1-router-mesh-688bfdc477-f2lsz    1/1     Running   0          79m
     interconnect-operator-5c8f464bc4-48n7h   1/1     Running   0          92m
     ``` 
+    
 * Using the AMQ Certificate Manager, create certificate to link both regions, Web Console -> Operators -> Installed Operators -> Certificate -> Create Certificate, E.g:
 ```
 apiVersion: certmanager.k8s.io/v1alpha1
@@ -66,10 +68,12 @@ spec:
     name: cluster1-router-mesh-inter-router-ca
   secretName: cluster2-inter-router-tls
 ```
+
 * Extract the certificate for use when deploying the second region
 ```
 oc extract secret/cluster2-inter-router-tls
 ```
+
 * Expose AMQPS port
   * From *amq-cluster1* namespace, navigate to Web Console -> Operators -> Installed Operators -> AMQ Interconnect -> AMQ   Interconnect -> cluster2-router-mesh -> YAML
   * Include *expose: true* for port 5671
@@ -93,6 +97,7 @@ oc extract secret/cluster2-inter-router-tls
   
 * Deploy the AMQ Interconnect Routing layer
   * From the *amq-cluster2* namespace, Operators -> Installed Operators -> AMQ Interconnect -> AMQ Interconnect -> Create Interconnect
+  
   * The YAML should include the router connector to connect to the first region
     ```
     apiVersion: interconnectedcloud.github.io/v1alpha1
@@ -125,6 +130,7 @@ oc extract secret/cluster2-inter-router-tls
       sslProfile: default
       expose: true
     ```
+
 ** Validate the links between the two clusters has been established
 * Navigate to *cluster2-router-mesh-8080* route and enter the following:
   ```
@@ -135,6 +141,57 @@ oc extract secret/cluster2-inter-router-tls
   ```
   * You can get the password by running: 
     ```$ oc get secret cluster2-router-mesh-users -o=jsonpath={.data.guest} | base64 -d```
+    
 * You should see the following:
   ![Interconnect](https://user-images.githubusercontent.com/25560159/79947627-da49e400-84a4-11ea-8ccf-d6969d81431d.png)
+  On the Interconnect console, it shows that the 4 routers across the regions are connected.
 
+** Deploy AMQ Broker in the second region
+* From the *amq-cluster2* namespace, Operators -> Installed Operators -> AMQ Broker -> AMQ Broker -> Create Active MQArtemis:
+  ```
+  apiVersion: broker.amq.io/v2alpha1
+  kind: ActiveMQArtemis
+  metadata:
+    name: broker1
+    namespace: amq-cluster2
+  spec:
+    deploymentPlan:
+      size: 1
+      image: 'registry.redhat.io/amq7/amq-broker:7.6'
+    acceptors:
+      - name: amqp
+        port: 5672
+        protocols: amqp
+  ```
+
+* Attach the broker to the routing layer
+** Once the broker is created successfully, attach the broker to the routing layer, Web Console -> Operators -> Installed Operators -> AMQ Interconnect -> AMQ Interconnect -> cluster2-router-mesh -> YAML:
+   * Add the following into the YAML:
+   ```
+   spec:
+    connectors:
+      - name: my-broker
+        host: broker1-hdls-svc.amq-cluster2.svc.cluster.local
+        port: 5672
+        routeContainer: true
+    linkRoutes:
+      - prefix: test
+        direction: in
+        connection: my-broker
+      - prefix: test
+        direction: out
+        connection: my-broker
+   ```
+   The *test* prefix indicates for which addresses the Routing layer should forward messages to the broker. The address *test* matches the address of the Fuse AMQP clients used to produce/consume messages.
+  
+* Running the whole demo:
+  You can run both producer and consumer by running:
+  ```
+  $ mvn
+  ```
+  
+ * You will be able to see the whole flow on the Interconnect visualization:
+
+ ![Final_result](https://user-images.githubusercontent.com/25560159/79955530-81cd1380-84b1-11ea-9eb1-b5644d8bc645.png)
+
+  
