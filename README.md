@@ -13,7 +13,7 @@ This demo deploys an AMQ messaging layer which simulates the messaging federatio
 1. [Deploy AMQ Interconnect in the first region](#deploy-amq-interconnect-in-the-first-region)
 2. [Deploy AMQ Interconnect in the second region](#deploy-amq-interconnect-in-the-second-region)
 3. [Deploy AMQ Broker in the second region](#deploy-amq-broker-in-the-second-region)
-4. [Attach the broker to the routing layer](#attach-the-amq-broker-to-the-routing-layer)
+4. [Attach the broker to the routing layer](#attach-the-broker-to-the-routing-layer)
 5. [Run the producer and consumer](#run-the-producer-and-consumer)  
 
 ## Deploy AMQ Interconnect in the first region
