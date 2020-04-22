@@ -95,36 +95,35 @@ oc extract secret/cluster2-inter-router-tls
 * Deploy the AMQ Interconnect Routing layer
   * From the *amq-cluster2* namespace, Operators -> Installed Operators -> AMQ Interconnect -> AMQ Interconnect -> Create Interconnect
   * The YAML should include the router connector to connect to the first region
-  ```
-  apiVersion: interconnectedcloud.github.io/v1alpha1
-  kind: Interconnect
-  metadata:
-    name: cluster2-router-mesh
-    namespace: amq-cluster2
-  spec:
-    deploymentPlan:
-      size: 2
-      role: interior
-      placement: Any
-    sslProfiles:
-    - name: inter-cluster-tls
-      credentials: cluster2-inter-router-tls
-      caCert: cluster2-inter-router-tls
-    interRouterConnectors:
-    - host: [HERE THE URL TO CLUSTER-1 PORT 55671]
-      port: 443
-      verifyHostname: false
-      sslProfile: inter-cluster-tls
-
-  ```
+    ```
+    apiVersion: interconnectedcloud.github.io/v1alpha1
+    kind: Interconnect
+    metadata:
+      name: cluster2-router-mesh
+      namespace: amq-cluster2
+    spec:
+      deploymentPlan:
+        size: 2
+        role: interior
+        placement: Any
+      sslProfiles:
+      - name: inter-cluster-tls
+        credentials: cluster2-inter-router-tls
+        caCert: cluster2-inter-router-tls
+      interRouterConnectors:
+      - host: [HERE THE URL TO CLUSTER-1 PORT 55671]
+        port: 443
+        verifyHostname: false
+        sslProfile: inter-cluster-tls
+    ```
   Note that the route can be retrieved by running: ``` $ oc get routes -n amq-cluster1 ```
 
 * Expose AMQPS port
   * From *amq-cluster2* namespace, navigate to Web Console -> Operators -> Installed Operators -> AMQ Interconnect -> AMQ   Interconnect -> cluster2-router-mesh -> YAML
   * Include *expose: true* for port 5671
-  ```
-  - port: 5671
-    sslProfile: default
-    expose: true
-  ```
+    ```
+    - port: 5671
+      sslProfile: default
+      expose: true
+    ```
   
