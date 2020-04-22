@@ -54,4 +54,27 @@ The first region will be called *amq-cluster1*.The AMQ Interconnect Operator wil
     cluster1-router-mesh-688bfdc477-5jnvp    1/1     Running   0          79m
     cluster1-router-mesh-688bfdc477-f2lsz    1/1     Running   0          79m
     interconnect-operator-5c8f464bc4-48n7h   1/1     Running   0          92m
-    ```
+    ``` 
+  * Using the AMQ Certificate Manager, create certificate to link both regions, Web Console -> Operators -> Installed Operators -> Certificate -> Create Certificate, E.g:
+  ```
+  apiVersion: certmanager.k8s.io/v1alpha1
+  kind: Certificate
+  metadata:
+    name: cluster2-inter-router-tls
+  spec:
+    commonName: cluster1-router-mesh-myproject.cluster2.openshift.com
+    issuerRef:
+      name: cluster1-router-mesh-inter-router-ca
+    secretName: cluster2-inter-router-tls
+
+  ```
+  * Extract the certificate for use when deploying the second region
+  ```
+  oc extract secret/cluster2-inter-router-tls
+  ```
+  
+### Deploy AMQ Interconnect in the second region
+* To create simulate a second region, create another namespace, *amq-cluster2*
+  ```
+  $ oc new-project amq-cluster2
+  ```
