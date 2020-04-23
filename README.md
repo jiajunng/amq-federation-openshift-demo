@@ -6,15 +6,15 @@ For demo sake, OpenShift namespaces will be used to simulate two different clust
 
 ## Prerequisites/Requirements
 * 1x OpenShift cluster (Tested on v4.3)
-* Java environment
-  * The AMQ clients (producers/consumers) will be implemented using Red Hat Fuse
+* Java environment with maven setup
+  * The AMQ clients used are Spring Boot based and will be implemented using Red Hat Fuse
 
 ## Instructions
 1. [Deploy AMQ Interconnect in the first cluster](#deploy-amq-interconnect-in-the-first-cluster)
 2. [Deploy AMQ Interconnect in the second cluster](#deploy-amq-interconnect-in-the-second-cluster)
 3. [Deploy AMQ Broker in the second cluster](#deploy-amq-broker-in-the-second-region)
-4. [Attach the broker to the routing layer](#attach-the-broker-to-the-routing-layer)
-5. [Run the producer and consumer](#run-the-producer-and-consumer)  
+4. [Attach the broker to the interconnect-routers](#attach-the-broker-to-the-interconnect-routers)
+5. [Running the demo](#running-the-demo)  
 
 ## Deploy AMQ Interconnect in the first cluster
 ![amq-cluster1](https://user-images.githubusercontent.com/25560159/79744412-de58f300-8338-11ea-8370-3f807b568367.png)
@@ -177,8 +177,8 @@ The first cluster will be called *amq-cluster1*. The AMQ Interconnect Operator w
         protocols: amqp
   ```
 
-## Attach the broker to the routing layer
-** Once the broker is created successfully, attach the broker to the routing layer, Web Console -> Operators -> Installed Operators -> AMQ Interconnect -> AMQ Interconnect -> cluster2-router-mesh -> YAML:
+## Attach the broker to the interconnect routers
+** Once the broker is created successfully, attach the broker to the routers, Web Console -> Operators -> Installed Operators -> AMQ Interconnect -> AMQ Interconnect -> cluster2-router-mesh -> YAML:
    * Add the following into the YAML:
    ```
    spec:
@@ -197,13 +197,13 @@ The first cluster will be called *amq-cluster1*. The AMQ Interconnect Operator w
    ```
    The *test* prefix indicates for which addresses the Routing layer should forward messages to the broker. The address *test* matches the address of the Fuse AMQP clients used to produce/consume messages.
   
-## Run the producer and consumer 
-  You can run both producer and consumer by running:
+## Running the demo
+  To run the demo, need to start the producer and consumer to begin the sending and receiving of messages. You can do so by running maven command locally:
   ```
   $ mvn
   ```
   
- * You will be able to see the whole flow on the Interconnect visualization:
+ * Once the AMQ clients are running, you should be able to see the whole traffic flow on the Interconnect web console:
 
  ![Final_result](https://user-images.githubusercontent.com/25560159/79955530-81cd1380-84b1-11ea-9eb1-b5644d8bc645.png)
 
