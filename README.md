@@ -13,7 +13,7 @@ For demo sake, OpenShift namespaces will be used to simulate two different clust
 1. [Deploy AMQ Interconnect in the first cluster](#deploy-amq-interconnect-in-the-first-cluster)
 2. [Deploy AMQ Interconnect in the second cluster](#deploy-amq-interconnect-in-the-second-cluster)
 3. [Deploy AMQ Broker in the second cluster](#deploy-amq-broker-in-the-second-region)
-4. [Attach the broker to the interconnect-routers](#attach-the-broker-to-the-interconnect-routers)
+4. [Attach the broker to the interconnect routers](#attach-the-broker-to-the-interconnect-routers)
 5. [Running the demo](#running-the-demo)  
 
 ## Deploy AMQ Interconnect in the first cluster
