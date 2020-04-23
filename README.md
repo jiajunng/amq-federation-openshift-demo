@@ -1,6 +1,6 @@
 # amq-federation-openshift-demo
-This demo deploys an AMQ messaging layer which simulates the messaging federation of two different OpenShift clusters using AMQ Interconnect. As it has became more of an usual usecase where one datacenters located away from one another hence there is a need to connect messaging brokers into one logical cluster.
-![demo_end_goal](https://user-images.githubusercontent.com/25560159/79966715-6c131a80-84c0-11ea-9409-1049b6ddb37a.png)
+This demo showcases an AMQ messaging layer which simulates the messaging federation of two different OpenShift clusters using AMQ Interconnect. As it has became more of an usual use case to have one datacenters located away from one another hence there is a need to connect messaging brokers into one logical cluster.
+![demo_end_goal](https://user-images.githubusercontent.com/25560159/80057853-391d6500-855a-11ea-8491-2682bcaccf87.png)
 
 For demo sake, OpenShift namespaces will be used to simulate two different clusters.
 
@@ -17,7 +17,7 @@ For demo sake, OpenShift namespaces will be used to simulate two different clust
 5. [Running the demo](#running-the-demo)  
 
 ## Deploy AMQ Interconnect in the first cluster
-![amq-cluster1](https://user-images.githubusercontent.com/25560159/79744412-de58f300-8338-11ea-8370-3f807b568367.png)
+![amq-cluster1](https://user-images.githubusercontent.com/25560159/80057817-22770e00-855a-11ea-9e71-580364dfbe1b.png)
 
 The first cluster will be called *amq-cluster1*. The AMQ Interconnect Operator will deploy two routers which forms a mesh. 
 
