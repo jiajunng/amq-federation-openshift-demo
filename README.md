@@ -28,20 +28,16 @@ The first cluster will be called *amq-cluster1*. The AMQ Interconnect Operator w
     
 * Install AMQ Interconnect Operator
   * Web Console -> Operators -> OperatorHub -> AMQ Interconnect -> Install
-    ```
-    $ oc get pods -n amq-cluster1
-    NAME                                     READY   STATUS    RESTARTS   AGE
-    interconnect-operator-5c8f464bc4-48n7h   1/1     Running   0          92m
-    ```
+
     
 * Deploy the AMQ Interconnect Routing layer
   * From the *amq-cluster1* namespace, Operators -> Installed Operators -> AMQ Interconnect -> AMQ Interconnect -> Create Interconnect
-  * You can use the default setting, I have changed the name to *cluster1-router-mesh* so it is easier to identify:
+  * You can use the default setting, I have changed the name to *cluster1-interconnect* so it is easier to identify:
     ```
     apiVersion: interconnectedcloud.github.io/v1alpha1
     kind: Interconnect
     metadata:
-      name: cluster1-router-mesh
+      name: cluster1-interconnect
       namespace: amq-cluster1
     spec:
       deploymentPlan:
@@ -54,29 +50,24 @@ The first cluster will be called *amq-cluster1*. The AMQ Interconnect Operator w
     ```
     $ oc get pods -n amq-cluster1
     NAME                                     READY   STATUS    RESTARTS   AGE
-    cluster1-router-mesh-688bfdc477-5jnvp    1/1     Running   0          79m
-    cluster1-router-mesh-688bfdc477-f2lsz    1/1     Running   0          79m
+    cluster1-interconnect-688bfdc477-5jnvp    1/1     Running   0          79m
+    cluster1-interconnect-688bfdc477-f2lsz    1/1     Running   0          79m
     interconnect-operator-5c8f464bc4-48n7h   1/1     Running   0          92m
     ``` 
  
 * Install AMQ Certificate Manager Operator to secure the connection between the two routers.
   * Web Console -> Operators -> OperatorHub -> AMQ Certificate Manager -> Install -> Subscribe
-    ```
-    $ oc get pods -n openshift-operators
-    NAME                                       READY   STATUS    RESTARTS   AGE
-    cert-manager-controller-657c78fd47-n8lnp   1/1     Running   0          179m
-    ```
     
-  * Create certificate to link both regions, Web Console -> Operators -> Installed Operators -> Certificate -> Create   Certificate, E.g:
+  * Create certificate to link both regions, Web Console -> Operators -> Installed Operators -> Certificate -> Create Certificate, E.g:
   ```
   apiVersion: certmanager.k8s.io/v1alpha1
   kind: Certificate
   metadata:
     name: cluster2-inter-router-tls
   spec:
-    commonName: cluster1-router-mesh-myproject.cluster2.openshift.com
+    commonName: cluster1-interconnect-myproject.cluster2.openshift.com
     issuerRef:
-      name: cluster1-router-mesh-inter-router-ca
+      name: cluster1-interconnect-inter-router-ca
     secretName: cluster2-inter-router-tls
   ```
 
@@ -86,8 +77,8 @@ The first cluster will be called *amq-cluster1*. The AMQ Interconnect Operator w
   ```
 
 * Expose AMQPS port so the interconnect routers between the two clusters can communicate with one another.
-  * From *amq-cluster1* namespace, navigate to Web Console -> Operators -> Installed Operators -> AMQ Interconnect -> AMQ   Interconnect -> cluster2-router-mesh -> YAML
-  * Include *expose: true* for port 5671
+  * From *amq-cluster1* namespace, navigate to Web Console -> Operators -> Installed Operators -> AMQ Interconnect -> AMQ Interconnect -> cluster1-interconnect -> YAML
+  * Set *expose: true* for port 5671
   ```
   - port: 5671
     sslProfile: default
@@ -116,7 +107,7 @@ The first cluster will be called *amq-cluster1*. The AMQ Interconnect Operator w
     apiVersion: interconnectedcloud.github.io/v1alpha1
     kind: Interconnect
     metadata:
-      name: cluster2-router-mesh
+      name: cluster2-interconnect
       namespace: amq-cluster2
     spec:
       deploymentPlan:
@@ -128,16 +119,16 @@ The first cluster will be called *amq-cluster1*. The AMQ Interconnect Operator w
         credentials: cluster2-inter-router-tls
         caCert: cluster2-inter-router-tls
       interRouterConnectors:
-      - host: [HERE THE URL TO CLUSTER-1 PORT 55671]
+      - host: <URL OF amq-cluster1 PORT 55671>
         port: 443
         verifyHostname: false
         sslProfile: inter-cluster-tls
     ```
-  Note that the route can be retrieved by running: ``` $ oc get routes -n amq-cluster1 ```
+  Note that the URL can be retrieved by running: ``` $ oc get routes -n amq-cluster1 ```
 
 * Expose AMQPS port to allow communciation from the first cluster.
-  * From *amq-cluster2* namespace, navigate to Web Console -> Operators -> Installed Operators -> AMQ Interconnect -> AMQ   Interconnect -> cluster2-router-mesh -> YAML
-  * Include *expose: true* for port 5671
+  * From *amq-cluster2* namespace, navigate to Web Console -> Operators -> Installed Operators -> AMQ Interconnect -> AMQ Interconnect -> cluster2-interconnect -> YAML
+  * Set *expose: true* for port 5671
     ```
     - port: 5671
       sslProfile: default
@@ -149,7 +140,7 @@ The first cluster will be called *amq-cluster1*. The AMQ Interconnect Operator w
   ```
   Address: (default)
   Port: 443
-  User Name: guest@cluster2-router-mesh
+  User Name: guest@cluster2-interconnect
   Password: (obtain from the Secret generated by Operator)
   ```
   * You can get the password by running: 
