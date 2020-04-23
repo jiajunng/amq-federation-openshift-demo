@@ -1,8 +1,8 @@
 # amq-federation-openshift-demo
-This demo deploys an AMQ messaging layer which simulates the messaging federation of two different OpenShift clusters using AMQ Interconnect. It is often an usual case of having more than one datacenters located away from one another and there is a need to connect messaging brokers into one logical cluster.
+This demo deploys an AMQ messaging layer which simulates the messaging federation of two different OpenShift clusters using AMQ Interconnect. As it has became more of an usual usecase where one datacenters located away from one another hence there is a need to connect messaging brokers into one logical cluster.
 ![demo_end_goal](https://user-images.githubusercontent.com/25560159/79966715-6c131a80-84c0-11ea-9409-1049b6ddb37a.png)
 
-For demo sake, OpenShift namespaces will be used to simulate two different regions.
+For demo sake, OpenShift namespaces will be used to simulate two different clusters.
 
 ## Prerequisites/Requirements
 * 1x OpenShift cluster (Tested on v4.3)
@@ -10,29 +10,22 @@ For demo sake, OpenShift namespaces will be used to simulate two different regio
   * The AMQ clients (producers/consumers) will be implemented using Red Hat Fuse
 
 ## Instructions
-1. [Deploy AMQ Interconnect in the first region](#deploy-amq-interconnect-in-the-first-region)
-2. [Deploy AMQ Interconnect in the second region](#deploy-amq-interconnect-in-the-second-region)
-3. [Deploy AMQ Broker in the second region](#deploy-amq-broker-in-the-second-region)
+1. [Deploy AMQ Interconnect in the first cluster](#deploy-amq-interconnect-in-the-first-cluster)
+2. [Deploy AMQ Interconnect in the second cluster](#deploy-amq-interconnect-in-the-second-cluster)
+3. [Deploy AMQ Broker in the second cluster](#deploy-amq-broker-in-the-second-region)
 4. [Attach the broker to the routing layer](#attach-the-broker-to-the-routing-layer)
 5. [Run the producer and consumer](#run-the-producer-and-consumer)  
 
-## Deploy AMQ Interconnect in the first region
+## Deploy AMQ Interconnect in the first cluster
 ![amq-cluster1](https://user-images.githubusercontent.com/25560159/79744412-de58f300-8338-11ea-8370-3f807b568367.png)
 
-The first region will be called *amq-cluster1*.The AMQ Interconnect Operator will deploy two nodes (Routers). Then it links them to form a mesh of size two and uses the AMQ Certificate Manager to secure the connection between both.
+The first cluster will be called *amq-cluster1*. The AMQ Interconnect Operator will deploy two routers which forms a mesh. 
 
 * Create a *amq-cluster1* project
   ```
   $ oc new-project amq-cluster1
   ```
-
-* Install AMQ Certificate Manager Operator
-  * Web Console -> Operators -> OperatorHub -> AMQ Certificate Manager -> Install -> Subscribe
-    ```
-    $ oc get pods -n openshift-operators
-    NAME                                       READY   STATUS    RESTARTS   AGE
-    cert-manager-controller-657c78fd47-n8lnp   1/1     Running   0          179m
-    ```
+    
 * Install AMQ Interconnect Operator
   * Web Console -> Operators -> OperatorHub -> AMQ Interconnect -> Install
     ```
@@ -40,6 +33,7 @@ The first region will be called *amq-cluster1*.The AMQ Interconnect Operator wil
     NAME                                     READY   STATUS    RESTARTS   AGE
     interconnect-operator-5c8f464bc4-48n7h   1/1     Running   0          92m
     ```
+    
 * Deploy the AMQ Interconnect Routing layer
   * From the *amq-cluster1* namespace, Operators -> Installed Operators -> AMQ Interconnect -> AMQ Interconnect -> Create Interconnect
   * You can use the default setting, I have changed the name to *cluster1-router-mesh* so it is easier to identify:
@@ -64,26 +58,34 @@ The first region will be called *amq-cluster1*.The AMQ Interconnect Operator wil
     cluster1-router-mesh-688bfdc477-f2lsz    1/1     Running   0          79m
     interconnect-operator-5c8f464bc4-48n7h   1/1     Running   0          92m
     ``` 
+ 
+* Install AMQ Certificate Manager Operator to secure the connection between the two routers.
+  * Web Console -> Operators -> OperatorHub -> AMQ Certificate Manager -> Install -> Subscribe
+    ```
+    $ oc get pods -n openshift-operators
+    NAME                                       READY   STATUS    RESTARTS   AGE
+    cert-manager-controller-657c78fd47-n8lnp   1/1     Running   0          179m
+    ```
     
-* Using the AMQ Certificate Manager, create certificate to link both regions, Web Console -> Operators -> Installed Operators -> Certificate -> Create Certificate, E.g:
-```
-apiVersion: certmanager.k8s.io/v1alpha1
-kind: Certificate
-metadata:
-  name: cluster2-inter-router-tls
-spec:
-  commonName: cluster1-router-mesh-myproject.cluster2.openshift.com
-  issuerRef:
-    name: cluster1-router-mesh-inter-router-ca
-  secretName: cluster2-inter-router-tls
-```
+  * Create certificate to link both regions, Web Console -> Operators -> Installed Operators -> Certificate -> Create   Certificate, E.g:
+  ```
+  apiVersion: certmanager.k8s.io/v1alpha1
+  kind: Certificate
+  metadata:
+    name: cluster2-inter-router-tls
+  spec:
+    commonName: cluster1-router-mesh-myproject.cluster2.openshift.com
+    issuerRef:
+      name: cluster1-router-mesh-inter-router-ca
+    secretName: cluster2-inter-router-tls
+  ```
 
-* Extract the certificate for use when deploying the second region
-```
-oc extract secret/cluster2-inter-router-tls
-```
+  * Extract the certificate for use when deploying the second cluster
+  ```
+  oc extract secret/cluster2-inter-router-tls
+  ```
 
-* Expose AMQPS port
+* Expose AMQPS port so the interconnect routers between the two clusters can communicate with one another.
   * From *amq-cluster1* namespace, navigate to Web Console -> Operators -> Installed Operators -> AMQ Interconnect -> AMQ   Interconnect -> cluster2-router-mesh -> YAML
   * Include *expose: true* for port 5671
   ```
@@ -92,15 +94,17 @@ oc extract secret/cluster2-inter-router-tls
     expose: true
   ```
 
-## Deploy AMQ Interconnect in the second region
-* To create simulate a second region, create another namespace, *amq-cluster2*
+## Deploy AMQ Interconnect in the second cluster
+* To create simulate a second cluster, create another namespace, *amq-cluster2*
   ```
   $ oc new-project amq-cluster2
   ```
+  
 * Create secret from the previous cluster's certificate:
   ```
   $ oc create secret generic cluster2-inter-router-tls
   ```
+  
 * Install AMQ's Interconnect Operator
   * Web Console -> Operators -> OperatorHub -> AMQ Interconnect -> Install
   
@@ -131,7 +135,7 @@ oc extract secret/cluster2-inter-router-tls
     ```
   Note that the route can be retrieved by running: ``` $ oc get routes -n amq-cluster1 ```
 
-* Expose AMQPS port
+* Expose AMQPS port to allow communciation from the first cluster.
   * From *amq-cluster2* namespace, navigate to Web Console -> Operators -> Installed Operators -> AMQ Interconnect -> AMQ   Interconnect -> cluster2-router-mesh -> YAML
   * Include *expose: true* for port 5671
     ```
@@ -155,7 +159,7 @@ oc extract secret/cluster2-inter-router-tls
   ![Interconnect](https://user-images.githubusercontent.com/25560159/79947627-da49e400-84a4-11ea-8ccf-d6969d81431d.png)
   On the Interconnect console, it shows that the 4 routers across the regions are connected.
 
-## Deploy AMQ Broker in the second region
+## Deploy AMQ Broker in the second cluster
 * From the *amq-cluster2* namespace, Operators -> Installed Operators -> AMQ Broker -> AMQ Broker -> Create Active MQArtemis:
   ```
   apiVersion: broker.amq.io/v2alpha1
