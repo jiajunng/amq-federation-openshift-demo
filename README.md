@@ -1,5 +1,5 @@
 # amq-federation-openshift-demo
-This demo showcases an AMQ messaging layer which simulates the messaging federation of two different OpenShift clusters using AMQ Interconnect. As it has became more of an usual use case to have one datacenters located away from one another hence there is a need to connect messaging brokers into one logical cluster.
+This demo showcases an AMQ messaging layer which simulates the messaging federation of two different OpenShift clusters using AMQ Interconnect. As it has became more of an usual use case to have one data centers located away from one another hence there is a need to connect messaging brokers into one logical cluster.
 ![demo_end_goal](https://user-images.githubusercontent.com/25560159/80057853-391d6500-855a-11ea-8491-2682bcaccf87.png)
 
 For demo sake, OpenShift namespaces will be used to simulate two different clusters.
